@@ -1,0 +1,17 @@
+{
+  "name": "vip-leave-roster",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared leave, work-from-home and event roster for the VIP account managers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "pg": "8.13.1"
+  }
+}

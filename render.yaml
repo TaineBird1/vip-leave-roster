@@ -1,0 +1,22 @@
+# Render Blueprint: creates the web app and its database in one go.
+services:
+  - type: web
+    name: vip-leave-roster
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vip-leave-roster-db
+          property: connectionString
+      - key: TEAM_CODE
+        sync: false   # Render asks you for this when you create the Blueprint. Leave blank for no code.
+
+databases:
+  - name: vip-leave-roster-db
+    plan: free
+    region: frankfurt
