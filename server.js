@@ -15,10 +15,11 @@ const MAX_DATE = "2027-12-31";
 
 // ---------- storage ----------
 let store;
+let pool = null; // shared with the Manager Hub (hub.js)
 if (process.env.DATABASE_URL) {
   const { Pool } = require("pg");
   const needsSsl = !/localhost|127\.0\.0\.1|\.internal|dpg-[a-z0-9]+-a(?![.\w])/i.test(process.env.DATABASE_URL);
-  const pool = new Pool({
+  pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
   });
@@ -122,6 +123,7 @@ const wrap = (fn) => (req, res) =>
 // ---------- app ----------
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1); // Render sits in front of the app; needed for per-visitor attempt limits
 app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "public"), { maxAge: 0 }));
 
@@ -159,7 +161,17 @@ app.delete("/api/entries/:id", checkCode, wrap(async (req, res) => {
   res.status(204).end();
 }));
 
-store.init().then(
-  () => app.listen(PORT, () => console.log(`Leave roster running on port ${PORT}${TEAM_CODE ? " (team code on)" : ""}`)),
+// ---------- VIP Manager Hub (tasks, bonuses, daily email report) ----------
+const hub = require("./hub")(app, { pool, checkCode });
+
+store.init().then(() => hub.init()).then(
+  () => app.listen(PORT, () => {
+    console.log(`Leave roster + Manager Hub running on port ${PORT}${TEAM_CODE ? " (team code on)" : ""}`);
+    // Checks every minute whether the daily report is due. The secured cron endpoint does the
+    // same check, and keeps the app awake on hosts that put idle apps to sleep.
+    const check = () => hub.tick().catch((err) => console.error("Report check failed:", err.message));
+    check();
+    setInterval(check, 60 * 1000);
+  }),
   (err) => { console.error("Could not start storage:", err); process.exit(1); }
 );

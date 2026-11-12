@@ -15,6 +15,15 @@ services:
           property: connectionString
       - key: TEAM_CODE
         sync: false   # Render asks you for this when you create the Blueprint. Leave blank for no code.
+      # --- Manager Hub + daily email report ---
+      - key: ADMIN_PIN        # unlocks the Hub's Admin tab
+        sync: false
+      - key: RESEND_API_KEY   # from resend.com → API Keys
+        sync: false
+      - key: REPORT_FROM      # e.g. VIP Manager Hub <reports@yourdomain.co.za> (a domain verified in Resend)
+        sync: false
+      - key: CRON_SECRET      # long random string; the scheduler sends it to trigger the report check
+        generateValue: true
 
 databases:
   - name: vip-leave-roster-db

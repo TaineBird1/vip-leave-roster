@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIP Manager Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#1F6B57">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light}
+[hidden]{display:none!important}
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --sunk:#E8ECE7; --line:#D3D9D2; --ink:#18211D; --muted:#5D6A63;
+  --accent:#1F6B57; --accent-ink:#FFFFFF;
+  --ok:#1E7A46; --ok-bg:#E3F4E8; --bad:#B4231A; --bad-bg:#FBE4E1; --away:#4D5A66; --away-bg:#E9EDF1; --warn-bg:#FBF0D3; --warn-line:#E2B544;
+  --f-display:"Familjen Grotesk","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#111714; --surface:#19211D; --sunk:#141B18; --line:#2C3832; --ink:#E6ECE8; --muted:#9AA8A0;
+  --accent:#4FB394; --accent-ink:#0C1310;
+  --ok:#6FD39A; --ok-bg:#16301F; --bad:#FF8A7D; --bad-bg:#3A1C19; --away:#A9B6C2; --away-bg:#222B33; --warn-bg:#33290F; --warn-line:#8A6A14; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left,0px)) 56px;display:grid;gap:18px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:1.75rem;font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.15rem;font-weight:600}
+h3{font-size:1rem;font-weight:600}
+.sub{color:var(--muted);margin:4px 0 0}
+header.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;justify-content:space-between}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font-weight:700;text-decoration:none;color:var(--ink);display:inline-block}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.small{padding:4px 10px;font-size:.85rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:9px 16px;font-weight:700;color:var(--muted)}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grow{flex:1 1 auto}
+.field{display:grid;gap:5px}
+.field label,.lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--muted)}
+.field select,.field input[type=text],.field input[type=email],.field input[type=time],.field input[type=date],.field input[type=password]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{color:var(--muted);font-size:.87rem;margin:0}
+.notice{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:.92rem}
+.notice.bad{border-color:var(--bad);background:var(--bad-bg);color:var(--bad);font-weight:700}
+.notice.away{border-color:var(--line);background:var(--away-bg);color:var(--away)}
+.chip{display:inline-block;border-radius:999px;padding:3px 11px;font-weight:700;font-size:.85rem;white-space:nowrap}
+.chip.complete,.chip.sent{background:var(--ok-bg);color:var(--ok)}
+.chip.incomplete,.chip.failed{background:var(--bad-bg);color:var(--bad)}
+.chip.leave,.chip.pending{background:var(--away-bg);color:var(--away)}
+.tasks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tasks label{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;font-weight:700}
+.tasks input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.tasks li.done label{background:var(--ok-bg);border-color:transparent;color:var(--ok)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:1.3rem;font-weight:700}
+.stepper .n{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;min-width:86px;text-align:center;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.complete td:first-child{box-shadow:inset 4px 0 0 var(--ok)} tr.incomplete td:first-child{box-shadow:inset 4px 0 0 var(--bad)} tr.leave td:first-child{box-shadow:inset 4px 0 0 var(--away)}
+tr.incomplete{background:var(--bad-bg)} tr.complete{background:var(--ok-bg)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.out{margin:0;padding-left:18px;color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-family:var(--f-mono);font-size:1.3rem}
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.checks label{border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:700;font-size:.9rem}
+.checks input{accent-color:var(--accent)}
+.switch{display:flex;gap:10px;align-items:center;font-weight:700}
+.switch input{width:20px;height:20px;accent-color:var(--accent)}
+iframe{width:100%;height:560px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.err{color:var(--bad);font-weight:700;margin:0}
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 40%,transparent);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:min(420px,100%);padding:20px;display:grid;gap:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:700;z-index:30;max-width:90vw}
+@media (max-width:560px){h1{font-size:1.4rem}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>VIP Manager Hub</h1>
+      <p class="sub" id="dateLine">Daily tasks and ad hoc bonuses for the VIP account managers</p>
+    </div>
+    <a class="btn" href="/">Leave roster</a>
+  </header>
+
+  <div class="seg" role="tablist">
+    <button role="tab" data-tab="mine" aria-selected="true">My day</button>
+    <button role="tab" data-tab="team" aria-selected="false">Team</button>
+    <button role="tab" data-tab="admin" aria-selected="false">Admin</button>
+  </div>
+
+  <div id="offline" class="notice" hidden>Can't reach the Hub server right now. Changes won't save until it's back.</div>
+
+  <!-- My day -->
+  <section id="tab-mine" class="card">
+    <div class="row">
+      <div class="field grow"><label for="who">I am</label><select id="who"></select></div>
+      <span class="chip" id="myChip" hidden></span>
+    </div>
+    <div id="myBody"></div>
+  </section>
+
+  <!-- Team -->
+  <section id="tab-team" class="card" hidden>
+    <div class="row">
+      <h2 class="grow">Team status</h2>
+      <div class="field"><label for="teamDate">Date</label><input type="date" id="teamDate"></div>
+    </div>
+    <div id="teamBody"></div>
+  </section>
+
+  <!-- Admin -->
+  <section id="tab-admin" hidden>
+    <div class="card" id="adminLocked">
+      <h2>Admin</h2>
+      <p class="hint">Enter the Admin PIN to manage tasks and email reports.</p>
+      <form id="pinForm" class="row">
+        <div class="field grow"><label for="pinIn">Admin PIN</label><input type="password" id="pinIn" autocomplete="off" required></div>
+        <button class="btn primary" type="submit">Unlock</button>
+      </form>
+      <p class="err" id="pinErr" hidden></p>
+    </div>
+
+    <div id="adminOpen" hidden style="display:grid;gap:18px">
+      <div id="failBanner" class="notice bad" hidden></div>
+
+      <div class="card">
+        <div class="row">
+          <h2 class="grow">Dashboard</h2>
+          <div class="field"><label for="adminDate">Date</label><input type="date" id="adminDate"></div>
+        </div>
+        <div id="adminDay"></div>
+      </div>
+
+      <div class="card">
+        <h2>Tasks</h2>
+        <form id="taskForm" style="display:grid;gap:12px">
+          <div class="field"><label for="tTitle">Task name</label><input type="text" id="tTitle" maxlength="120" placeholder="e.g. Review leave roster" required></div>
+          <div class="field"><span class="lbl">Assign to</span><div class="checks" id="tPeople"></div></div>
+          <div class="field"><span class="lbl">Repeats on</span><div class="checks" id="tDays"></div></div>
+          <div class="row">
+            <div class="field"><label for="tOnce">Or one day only</label><input type="date" id="tOnce"></div>
+            <span class="grow"></span>
+            <button class="btn primary" type="submit">Add task</button>
+          </div>
+        </form>
+        <div class="scroll"><table><thead><tr><th>Account manager</th><th>Task</th><th>When</th><th></th></tr></thead><tbody id="taskRows"></tbody></table></div>
+      </div>
+
+      <div class="card" id="emailCard">
+        <h2>Settings · Email Reports</h2>
+        <div id="serverWarn"></div>
+        <form id="setForm" style="display:grid;gap:12px">
+          <div class="two">
+            <div class="field"><label for="sRecipient">Andre's email address (recipient)</label><input type="email" id="sRecipient" placeholder="andre@example.com"></div>
+            <div class="field"><label for="sTime">Daily reporting time (SAST)</label><input type="time" id="sTime" required></div>
+          </div>
+          <div class="field"><label for="sAlert">Alert email if delivery keeps failing (optional)</label><input type="email" id="sAlert" placeholder="A different address from the recipient"></div>
+          <label class="switch"><input type="checkbox" id="sEnabled"> Send the report automatically every day</label>
+          <div class="row">
+            <button class="btn primary" type="submit">Save settings</button>
+            <button class="btn" type="button" id="testBtn">Send a test email</button>
+            <button class="btn" type="button" id="prevBtn">Preview today's report</button>
+          </div>
+        </form>
+        <div id="previewBox" hidden style="display:grid;gap:8px">
+          <p class="hint" id="previewSubject"></p>
+          <iframe id="previewFrame" title="Report preview" sandbox=""></iframe>
+        </div>
+        <h3>Previous reports</h3>
+        <div class="scroll"><table><thead><tr><th>Report date</th><th>Type</th><th>Sent to</th><th>Status</th><th>Attempts</th><th>Detail</th><th></th></tr></thead><tbody id="reportRows"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="scrim" id="codeScrim" hidden>
+  <form class="panel" id="codeForm">
+    <h2>Team code</h2>
+    <p class="hint">Enter the code your team uses for the leave roster. You only need to do this once on this device.</p>
+    <div class="field"><label for="codeIn">Code</label><input type="password" id="codeIn" autocomplete="off" required></div>
+    <p class="err" id="codeErr" hidden>That code didn't work. Check it and try again.</p>
+    <button type="submit" class="btn primary">Continue</button>
+  </form>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const PEOPLE=["Taine","Callum","Roman","Pearl","Brenda","Julie","Andre"];
+const DAYS=[[1,"Mon"],[2,"Tue"],[3,"Wed"],[4,"Thu"],[5,"Fri"],[6,"Sat"],[0,"Sun"]];
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const longDate=d=>`${+d.slice(8,10)} ${MONTHS[+d.slice(5,7)-1]} ${d.slice(0,4)}`;
+const store={get(k){try{return localStorage.getItem(k)||"";}catch(e){return this["_"+k]||"";}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}this["_"+k]=v;}};
+let pin="", today="", myDay=null, tab="mine";
+
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,4200);}
+
+async function api(method,path,body){
+  const h={"Content-Type":"application/json"};
+  const code=store.get("vipRosterCode");if(code)h["X-Team-Code"]=code;
+  if(pin)h["X-Admin-Pin"]=pin;
+  let r;
+  try{r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):undefined});}
+  catch(e){$("offline").hidden=false;throw {code:"net",message:"Can't reach the server."};}
+  $("offline").hidden=true;
+  if(r.status===401&&!path.includes("/admin/")){$("codeErr").hidden=!code;$("codeScrim").hidden=false;$("codeIn").focus();throw {code:"auth"};}
+  if(!r.ok){let m="";try{m=(await r.json()).error||"";}catch(e){}throw {code:"http",status:r.status,message:m||"Something went wrong."};}
+  return r.status===204?null:r.json();
+}
+$("codeForm").addEventListener("submit",e=>{e.preventDefault();store.set("vipRosterCode",$("codeIn").value.trim());$("codeScrim").hidden=true;refresh();});
+
+// ---------- tabs ----------
+function show(t){
+  tab=t;
+  document.querySelectorAll("[role=tab]").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  for(const n of ["mine","team","admin"])$("tab-"+n).hidden=n!==t;
+  refresh();
+}
+document.querySelectorAll("[role=tab]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.tab)));
+
+// ---------- shared rendering ----------
+const chipText=p=>p.status==="leave"?"On approved leave":p.status==="complete"?"Complete":"Incomplete";
+const bonusText=p=>p.bonusRequired?`${p.bonuses||0}/${p.bonusTarget}`:(p.bonuses?`${p.bonuses}`:"—");
+function dayTable(day,withOutstanding){
+  const s=day.summary;
+  const rows=day.people.map(p=>`<tr class="${p.status}"><td><b>${esc(p.name)}</b>${p.where?`<br><span class="hint">${esc(p.where)}</span>`:""}</td>
+    <td class="num">${p.completed}/${p.total}</td><td class="num">${p.percent===null?"—":p.percent+"%"}</td><td class="num">${bonusText(p)}</td>
+    <td><span class="chip ${p.status}">${chipText(p)}</span></td>
+    ${withOutstanding?`<td>${p.outstanding.length?`<ul class="out">${p.outstanding.map(o=>`<li>${esc(o)}</li>`).join("")}</ul>`:(p.onLeave?`<span class="hint">${esc(p.leaveNote||"")}</span>`:"")}</td>`:""}</tr>`).join("");
+  return `<p class="hint">${longDate(day.date)} · ${day.finalised?"Finalised and reported. These figures are locked.":"Live. Not yet finalised."}</p>
+  <div class="stats">
+    <div class="stat">Fully completed<b>${s.complete}/${s.managers}</b></div>
+    <div class="stat">Incomplete<b>${s.incomplete}</b></div>
+    <div class="stat">On leave<b>${s.onLeave}</b></div>
+    <div class="stat">Bonuses recorded<b>${s.bonusesRecorded}/${s.bonusesExpected}</b></div>
+    <div class="stat">Overall<b><span class="chip ${s.incomplete?"incomplete":"complete"}">${s.overall}</span></b></div>
+  </div>
+  <div class="scroll"><table><thead><tr><th>Account manager</th><th>Tasks</th><th>Completion</th><th>Bonuses</th><th>Status</th>${withOutstanding?"<th>Outstanding</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ---------- my day ----------
+$("who").innerHTML=`<option value="">Choose your name…</option>`+PEOPLE.map(p=>`<option>${p}</option>`).join("");
+$("who").value=store.get("vipHubWho");
+$("who").addEventListener("change",()=>{store.set("vipHubWho",$("who").value);renderMine();});
+
+function renderMine(){
+  const name=$("who").value,chip=$("myChip"),body=$("myBody");
+  if(!myDay){body.innerHTML=`<p class="hint">Loading…</p>`;chip.hidden=true;return;}
+  $("dateLine").textContent=`${longDate(myDay.date)} · Daily tasks and ad hoc bonuses for the VIP account managers`;
+  const p=myDay.people.find(x=>x.name===name);
+  if(!p){body.innerHTML=`<p class="hint">Pick your name to see today's tasks.</p>`;chip.hidden=true;return;}
+  chip.hidden=false;chip.className="chip "+p.status;chip.textContent=chipText(p);
+  const locked=myDay.finalised;
+  let h="";
+  if(locked)h+=`<div class="notice away">Today has been finalised and reported. It can't be changed.</div>`;
+  if(p.onLeave)h+=`<div class="notice away">You're on approved leave today${p.leaveNote?` (${esc(p.leaveNote)})`:""}. Nothing is counted against you.</div>`;
+  h+=`<h3 style="margin-top:12px">Tasks · ${p.completed}/${p.total} done</h3>`;
+  h+=p.tasks.length?`<ul class="tasks" style="margin-top:8px">${p.tasks.map(t=>`<li class="${t.done?"done":""}"><label><input type="checkbox" data-task="${esc(t.id)}" ${t.done?"checked":""} ${locked?"disabled":""}>${esc(t.title)}</label></li>`).join("")}</ul>`
+    :`<p class="hint">No tasks are scheduled for you today.</p>`;
+  h+=`<h3 style="margin-top:16px">Ad hoc bonuses recorded</h3>`;
+  h+=p.bonusTarget>0?`<div class="stepper" style="margin-top:8px"><button type="button" data-step="-1" aria-label="One fewer" ${locked||!(p.bonuses>0)?"disabled":""}>−</button><span class="n">${p.bonuses||0}/${p.bonusTarget}</span><button type="button" data-step="1" aria-label="One more" ${locked||(p.bonuses||0)>=p.bonusTarget?"disabled":""}>+</button>
+    <button type="button" class="btn small" data-step="all" ${locked||(p.bonuses||0)>=p.bonusTarget?"disabled":""}>All ${p.bonusTarget} done</button></div>${p.bonusRequired?"":`<p class="hint" style="margin-top:6px">Not required today.</p>`}`
+    :`<p class="hint">Bonuses aren't being tracked.</p>`;
+  body.innerHTML=h;
+}
+$("myBody").addEventListener("change",async e=>{
+  const id=e.target.dataset.task;if(!id)return;
+  try{myDay=await api("POST","/api/hub/complete",{taskId:id,date:myDay.date,done:e.target.checked});}
+  catch(x){if(x.message)toast(x.message);await loadMine();return;}
+  renderMine();
+});
+$("myBody").addEventListener("click",async e=>{
+  const step=e.target.dataset.step;if(!step)return;
+  const p=myDay.people.find(x=>x.name===$("who").value);if(!p)return;
+  const count=step==="all"?p.bonusTarget:Math.min(p.bonusTarget,Math.max(0,(p.bonuses||0)+Number(step)));
+  try{myDay=await api("POST","/api/hub/bonuses",{person:p.name,date:myDay.date,count});}
+  catch(x){if(x.message)toast(x.message);await loadMine();return;}
+  renderMine();
+});
+async function loadMine(){try{myDay=await api("GET","/api/hub/day");today=myDay.today;renderMine();}catch(x){}}
+
+// ---------- team ----------
+async function loadTeam(){
+  if(!$("teamDate").value&&today)$("teamDate").value=today;
+  try{const d=await api("GET","/api/hub/day"+($("teamDate").value?`?date=${$("teamDate").value}`:""));today=d.today;if(!$("teamDate").value)$("teamDate").value=today;$("teamBody").innerHTML=dayTable(d,false);}catch(x){}
+}
+$("teamDate").addEventListener("change",loadTeam);
+
+// ---------- admin ----------
+$("tPeople").innerHTML=PEOPLE.map(p=>`<label><input type="checkbox" value="${p}">${p}</label>`).join("");
+$("tDays").innerHTML=DAYS.map(([n,l])=>`<label><input type="checkbox" value="${n}" ${n>=1&&n<=5?"checked":""}>${l}</label>`).join("");
+
+$("pinForm").addEventListener("submit",async e=>{
+  e.preventDefault();pin=$("pinIn").value.trim();
+  try{await api("GET","/api/hub/admin/check");try{sessionStorage.setItem("vipHubPin",pin);}catch(e){}$("pinErr").hidden=true;openAdmin();}
+  catch(x){pin="";$("pinErr").textContent=x.status===401?"That PIN didn't work.":(x.message||"Couldn't unlock.");$("pinErr").hidden=false;}
+});
+function openAdmin(){$("adminLocked").hidden=true;$("adminOpen").hidden=false;loadAdmin();}
+function adminFail(x){if(x.status===401){pin="";try{sessionStorage.removeItem("vipHubPin");}catch(e){}$("adminLocked").hidden=false;$("adminOpen").hidden=true;}else if(x.message)toast(x.message);}
+
+async function loadAdmin(){
+  if(!pin)return;
+  try{
+    if(!$("adminDate").value)$("adminDate").value=today||"";
+    const [day,tasks,set,rep]=await Promise.all([
+      api("GET","/api/hub/day"+($("adminDate").value?`?date=${$("adminDate").value}`:"")),
+      api("GET","/api/hub/admin/tasks"),api("GET","/api/hub/admin/settings"),api("GET","/api/hub/admin/reports")]);
+    today=day.today;if(!$("adminDate").value)$("adminDate").value=today;
+    $("adminDay").innerHTML=dayTable(day,true);
+    renderTasks(tasks);renderSettings(set);renderReports(rep);
+  }catch(x){adminFail(x);}
+}
+$("adminDate").addEventListener("change",loadAdmin);
+
+function renderTasks(list){
+  const when=t=>t.once_date?`${longDate(t.once_date)} only`:t.days.split(",").map(d=>DAYS.find(x=>x[0]==d)?.[1]).join(", ");
+  $("taskRows").innerHTML=list.length?list.map(t=>`<tr><td><b>${esc(t.person)}</b></td><td>${esc(t.title)}</td><td>${esc(when(t))}</td><td><button class="btn small danger" data-del="${esc(t.id)}" type="button">Remove</button></td></tr>`).join("")
+    :`<tr><td colspan="4" class="hint">No tasks yet. Add the team's daily tasks above.</td></tr>`;
+}
+$("taskForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const vals=id=>[...$(id).querySelectorAll("input:checked")].map(i=>i.value);
+  try{await api("POST","/api/hub/admin/tasks",{title:$("tTitle").value,people:vals("tPeople"),days:vals("tDays").map(Number),onceDate:$("tOnce").value||null});
+    $("tTitle").value="";$("tOnce").value="";toast("Task added.");loadAdmin();}
+  catch(x){adminFail(x);}
+});
+$("taskRows").addEventListener("click",async e=>{
+  const id=e.target.dataset.del;if(!id)return;
+  try{await api("DELETE","/api/hub/admin/tasks/"+encodeURIComponent(id));toast("Task removed from today onwards.");loadAdmin();}catch(x){adminFail(x);}
+});
+
+let setLoaded=false;
+function renderSettings(s){
+  if(!setLoaded||document.activeElement.closest?.("#setForm")==null){
+    $("sRecipient").value=s.recipient;$("sTime").value=s.reportTime;$("sAlert").value=s.alertEmail;$("sEnabled").checked=s.enabled;setLoaded=true;}
+  const w=[];
+  if(!s.server.emailKeySet)w.push("No email provider key is set on the server (RESEND_API_KEY), so nothing can be sent yet.");
+  else if(s.server.sandboxSender)w.push(`Reports are being sent from Resend's test address (${esc(s.server.from)}), which only delivers to the Resend account owner's own email. Verify a domain in Resend and set REPORT_FROM to send to anyone.`);
+  if(!s.server.cronSecretSet)w.push("CRON_SECRET is not set, so the outside scheduler can't wake the app. On a host that sleeps when idle, the report may be late.");
+  if(!s.recipient)w.push("No recipient yet. Add Andre's email address and save to start the daily reports.");
+  else if(!s.enabled)w.push("Automatic reports are switched off.");
+  $("serverWarn").innerHTML=w.map(x=>`<div class="notice" style="margin-bottom:8px">${x}</div>`).join("");
+}
+$("setForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  try{renderSettings(await api("PUT","/api/hub/admin/settings",{recipient:$("sRecipient").value,reportTime:$("sTime").value,alertEmail:$("sAlert").value,enabled:$("sEnabled").checked}));toast("Settings saved.");}
+  catch(x){adminFail(x);}
+});
+$("testBtn").addEventListener("click",async()=>{
+  $("testBtn").disabled=true;
+  try{const r=await api("POST","/api/hub/admin/test-email");toast(r.message);}catch(x){adminFail(x);}
+  $("testBtn").disabled=false;loadAdmin();
+});
+$("prevBtn").addEventListener("click",async()=>{
+  try{const r=await api("GET","/api/hub/admin/preview"+($("adminDate").value?`?date=${$("adminDate").value}`:""));
+    $("previewSubject").textContent="Subject: "+r.subject+(r.finalised?"":" (live figures, not yet finalised)");$("previewFrame").srcdoc=r.html;$("previewBox").hidden=false;}
+  catch(x){adminFail(x);}
+});
+
+const sast=iso=>iso?new Date(new Date(iso).getTime()+2*3600e3).toISOString().slice(0,16).replace("T"," "):"";
+function renderReports(rep){
+  const f=rep.failing||[];
+  $("failBanner").hidden=!f.length;
+  if(f.length)$("failBanner").innerHTML=f.map(x=>`The daily report for ${longDate(x.report_date)} has not been delivered after ${x.attempts} attempt${x.attempts===1?"":"s"}. ${esc(x.last_error||"")} ${x.next_retry_at?`Next retry ${sast(x.next_retry_at)} SAST.`:"Automatic retries have stopped. Fix the problem, then press Retry below."}`).join("<br>");
+  $("reportRows").innerHTML=rep.reports.length?rep.reports.map(r=>{
+    const detail=r.status==="sent"?`Sent ${sast(r.sent_at)} SAST`:r.status==="failed"?esc(r.last_error||"")+(r.next_retry_at?`<br><span class="hint">Next retry ${sast(r.next_retry_at)} SAST</span>`:(r.kind==="scheduled"?`<br><span class="hint">Retries stopped</span>`:"")):"Waiting to send";
+    return `<tr><td class="num">${esc(r.report_date)}</td><td>${r.kind==="test"?"Test":"Daily"}</td><td>${esc(r.recipient||"—")}</td><td><span class="chip ${esc(r.status)}">${r.status==="sent"?"Delivered":r.status==="failed"?"Failed":"Pending"}</span></td><td class="num">${r.attempts}</td><td>${detail}</td><td>${r.kind==="scheduled"&&r.status!=="sent"?`<button class="btn small" type="button" data-retry="${esc(r.id)}">Retry</button>`:""}</td></tr>`;}).join("")
+    :`<tr><td colspan="7" class="hint">No reports sent yet.</td></tr>`;
+}
+$("reportRows").addEventListener("click",async e=>{
+  const id=e.target.dataset.retry;if(!id)return;e.target.disabled=true;
+  try{const r=await api("POST",`/api/hub/admin/reports/${encodeURIComponent(id)}/retry`);toast(r.message);}catch(x){adminFail(x);}
+  loadAdmin();
+});
+
+// ---------- start ----------
+function refresh(){if(tab==="mine")loadMine();else if(tab==="team")loadTeam();else if(pin)loadAdmin();}
+try{pin=sessionStorage.getItem("vipHubPin")||"";}catch(e){}
+if(pin){$("adminLocked").hidden=true;$("adminOpen").hidden=false;}
+show(location.hash==="#admin"?"admin":"mine");
+setInterval(()=>{if(document.visibilityState==="visible"&&!document.activeElement.closest?.("form"))refresh();},20000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh();});
+</script>
+</body>
+</html>
