@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const path = require("path");
 
 // Report order (matches the report layout the team asked for).
-const HUB_PEOPLE = ["Taine", "Callum", "Roman", "Pearl", "Brenda", "Julie", "Andre"];
+const HUB_PEOPLE = ["Taine", "Callum", "Roman", "Pearl", "Brenda", "Julie"];
 const MAX_ATTEMPTS = 6;                      // 1 first try + 5 retries
 const BACKOFF_MIN = [2, 5, 15, 30, 60];      // wait before retry n
 const ALERT_AFTER = 3;                       // notify Admin after this many failed attempts

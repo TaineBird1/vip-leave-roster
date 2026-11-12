@@ -39,7 +39,7 @@ Then open http://localhost:3000. Without `DATABASE_URL` set, bookings save to a 
 
 # VIP Manager Hub (`/hub`)
 
-The same app also serves the **VIP Manager Hub** at `/hub`: each account manager ticks off their daily tasks and records their ad hoc bonuses (out of 10), and Andre gets an automatic end-of-day email report covering all seven account managers.
+The same app also serves the **VIP Manager Hub** at `/hub`: each account manager ticks off their daily tasks and records their ad hoc bonuses (out of 10), and Andre gets an automatic end-of-day email report covering the six account managers (Taine, Callum, Roman, Pearl, Brenda, Julie). Andre receives the report but is not tracked in it.
 
 | File | What it does |
 |---|---|
