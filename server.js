@@ -1,4 +1,5 @@
-// VIP Team Leave Roster — small web server for Render.
+// VIP Team Leave Roster — calendar page plus a small JSON API.
+// Runs as a normal Node server (npm start) or as a Vercel function (api/index.js).
 // Serves the calendar page and a JSON API. Data lives in Postgres (DATABASE_URL);
 // without DATABASE_URL it falls back to a local data.json file (for testing only).
 const express = require("express");
@@ -17,10 +18,16 @@ const MAX_DATE = "2027-12-31";
 let store;
 if (process.env.DATABASE_URL) {
   const { Pool } = require("pg");
-  const needsSsl = !/localhost|127\.0\.0\.1|\.internal|dpg-[a-z0-9]+-a(?![.\w])/i.test(process.env.DATABASE_URL);
+  // Neon and other hosted databases need SSL; Render's internal URL and local databases don't.
+  // sslmode/channel_binding are stripped from the URL so the ssl option below is the one that applies.
+  const dbUrl = new URL(process.env.DATABASE_URL);
+  ["sslmode", "channel_binding"].forEach((k) => dbUrl.searchParams.delete(k));
+  const needsSsl = !/^(localhost|127\.0\.0\.1)$|\.internal$|^dpg-[a-z0-9]+-a$/i.test(dbUrl.hostname);
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: dbUrl.toString(),
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
+    max: process.env.VERCEL ? 2 : 10,
+    idleTimeoutMillis: 10000,
   });
   store = {
     async init() {
@@ -126,6 +133,10 @@ app.use(express.json({ limit: "20kb" }));
 app.use(express.static(path.join(__dirname, "public"), { maxAge: 0 }));
 
 app.get("/healthz", (req, res) => res.send("ok"));
+app.use("/api", (req, res, next) => ready().then(() => next(), (err) => {
+  console.error("Database not reachable:", err.message);
+  res.status(503).json({ error: "The roster database isn't reachable right now. Try again in a minute." });
+}));
 
 app.get("/api/entries", checkCode, wrap(async (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -159,7 +170,18 @@ app.delete("/api/entries/:id", checkCode, wrap(async (req, res) => {
   res.status(204).end();
 }));
 
-store.init().then(
-  () => app.listen(PORT, () => console.log(`Leave roster running on port ${PORT}${TEAM_CODE ? " (team code on)" : ""}`)),
-  (err) => { console.error("Could not start storage:", err); process.exit(1); }
-);
+// Set up the table once, on first use (works for both a long-running server and Vercel functions).
+let readyPromise = null;
+function ready() {
+  if (!readyPromise) readyPromise = store.init().catch((err) => { readyPromise = null; throw err; });
+  return readyPromise;
+}
+
+module.exports = { app, ready };
+
+if (require.main === module) {
+  ready().then(
+    () => app.listen(PORT, () => console.log(`Leave roster running on port ${PORT}${TEAM_CODE ? " (team code on)" : ""}`)),
+    (err) => { console.error("Could not start storage:", err); process.exit(1); }
+  );
+}

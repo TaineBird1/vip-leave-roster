@@ -7,24 +7,20 @@ A shared calendar for the seven VIP account managers (Andre, Pearl, Callum, Tain
 | File | What it does |
 |---|---|
 | `public/index.html` | The calendar page people use |
-| `server.js` | Small Node server that saves bookings to the database |
-| `render.yaml` | Tells Render to create the web app and its database |
+| `server.js` | The API that saves bookings to the database |
+| `api/index.js`, `vercel.json` | Run the API on Vercel |
+| `render.yaml` | Old Render setup (no longer used) |
 | `package.json` | Lists the two packages the server needs |
 
-## Deploy to Render
+## Where it runs
 
-1. **Put the code on GitHub.** Create a new repository (private is fine) on github.com. Use "uploading an existing file" and drag in everything from this folder except `node_modules`.
-2. **Create the app on Render.** In the Render dashboard, choose **New → Blueprint**, connect GitHub and select the repository. Render reads `render.yaml` and sets up the web service and the database.
-3. **Set a team code (recommended).** Render asks for `TEAM_CODE`. Enter something short the team can remember. Anyone opening the roster types it once per device, which keeps strangers out if the link spreads. Leave it blank for no code.
-4. **Click Apply.** After a few minutes you get a link like `https://vip-leave-roster.onrender.com`. Share that link with the team.
+- **Hosting:** Vercel (free). `vercel.json` serves `public/` as the page and routes `/api/*` to `api/index.js`.
+- **Database:** Neon Postgres (free). Set its connection string as `DATABASE_URL` in the Vercel project's Environment Variables.
+- **Team code (optional):** set `TEAM_CODE` in Vercel to make people enter a shared code once per device.
 
-To change the code later: Render → the web service → **Environment** → edit `TEAM_CODE` → save. The app restarts with the new code.
+The page refreshes every 15 seconds while someone is using it and pauses after 5 minutes of no activity, so the Neon database can sleep and stay within the free plan's compute allowance.
 
-## Things to know about Render's free plan
-
-- **First load can be slow.** A free web service sleeps after 15 minutes with no visitors and takes about a minute to wake up. After that it's fast. Upgrading the web service to the Starter plan removes the sleep.
-- **The free database expires after 30 days.** Render then gives you 14 days to upgrade it to a paid plan before deleting it. To keep your bookings, upgrade the database (Render → the database → **Upgrade**) before day 30.
-  - Free alternative: create a free Postgres database on Neon (neon.tech) or Supabase, then paste its connection string into the web service's `DATABASE_URL` environment variable and delete the Render database.
+It can still run as a normal Node server anywhere (`npm start`), e.g. on Render, using the same `DATABASE_URL` setting.
 
 ## Run it on your own computer (optional)
 

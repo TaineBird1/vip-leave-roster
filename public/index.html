@@ -432,8 +432,13 @@ async function load(){
   catch(x){if(x.code!=="auth"){$("dbNotice").textContent="Can't reach the roster server right now. Changes won't save until it's back.";$("dbNotice").hidden=false;}}
 }
 live=true;
-load();setInterval(()=>{if(document.visibilityState==="visible"&&$("scrim").hidden)load();},15000);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")load();});
+// Refresh every 15s while someone is using the page; pause after 5 minutes with no activity
+// so a tab left open on a screen doesn't keep the database awake all day.
+const IDLE_MS=5*60*1000;let lastActive=Date.now();
+function active(){const wasIdle=Date.now()-lastActive>IDLE_MS;lastActive=Date.now();if(wasIdle&&document.visibilityState==="visible")load();}
+["pointerdown","pointermove","keydown","wheel","touchstart","focus"].forEach(ev=>window.addEventListener(ev,active,{passive:true}));
+load();setInterval(()=>{if(document.visibilityState==="visible"&&$("scrim").hidden&&Date.now()-lastActive<IDLE_MS)load();},15000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastActive=Date.now();load();}});
 </script>
 </body>
 </html>
